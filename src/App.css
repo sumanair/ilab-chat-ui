@@ -2,84 +2,127 @@
   text-align: center;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 10vh;
+.header {
+  height: 40px; /* Adjust height as needed */
+  background-color: #f8f9fa;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-  z-index: 1;
+  font-size: 1.5em;
+  border-bottom: 1px solid #ccc;
+}
+
+.main-content {
+  display: flex;
+  height: calc(100vh - 40px); /* Adjust based on the new header height */
+}
+
+.chat-history {
+  width: 20%; /* Fixed percentage width for the chat history pane */
+  overflow-y: auto;
+  border-right: 1px solid #ccc;
+}
+
+.chat-container {
+  width: 80%; /* Remaining percentage width for the chat container */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
   position: relative;
+  align-items: center; /* Center align items horizontally */
 }
 
 .chat-box {
-  border: 1px solid #ccc;
+  width: 100%; /* Make chat box full width of chat container */
+  max-width: 800px; /* Increased max-width for better readability */
+  overflow-y: auto;
+  padding: 20px; /* Add padding around the chat box */
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.8); /* Add a slightly transparent background to chat box */
+  border-radius: 10px; /* Optional: Add border radius for rounded corners */
+}
+
+.message {
+  margin-bottom: 10px;
+  display: flex;
+  width: 100%;
+}
+
+.message.user .message-content {
+  background-color: #d0e7ff; /* Pale blue for user questions */
+  align-self: flex-start; /* Align user messages to the left */
+}
+
+.message.assistant .message-content {
+  background-color: #daf8e3; /* Pale green for assistant responses */
+  align-self: flex-end; /* Align assistant messages to the right */
+  justify-content: flex-end; /* Align the content to the right */
+  text-align: right; /* Justify the text to the right */
+}
+
+.message-content {
   padding: 10px;
-  margin: 20px;
-  height: 60vh;
-  overflow-y: scroll;
+  border-radius: 5px;
+  max-width: 70%; /* Ensure the message content takes up the appropriate width */
+  word-wrap: break-word;
 }
 
 .input-box {
   display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
+  width: 100%;
+  max-width: 800px; /* Increased max-width for better readability */
+  margin-top: 10px;
 }
 
-input[type="text"] {
-  width: 80%;
+.input-box input {
+  flex-grow: 1;
   padding: 10px;
-  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 10px;
 }
 
-button {
+.input-box button {
   padding: 10px 20px;
-  font-size: 16px;
-  margin-left: 10px;
-  background-color: #33475b;
-  color: white;
   border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #253647;
+.input-box button:hover {
+  background-color: #0056b3;
 }
 
-.server-error {
-  height: calc(90vh - 10vh); /* Adjust height to fit below header */
+.error-page {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  position: relative;
+  height: 100vh;
   color: white;
-  font-size: 1.2em;
+  font-size: 1.5em;
   text-align: center;
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.5);
-  border-radius: 15px;
-  z-index: 1;
+  position: relative;
 }
 
-.server-error img.error-image {
+.error-page .error-message {
+  position: absolute;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.error-page::before {
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.5; /* 50% transparency */
+  right: 0;
+  bottom: 0;
+  opacity: 0.7;
   z-index: 0;
-}
-
-.server-error p {
-  z-index: 2;
-  position: relative;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 20px;
-  border-radius: 15px;
 }

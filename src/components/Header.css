@@ -1,0 +1,15 @@
+.header {
+  background-color: #1257a0;
+  color: white;
+  padding: 5px 20px; /* Reduce padding to make the header thinner */
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+  align-items: center;
+  height: 40px; /* Adjust height as needed */
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.2rem; /* Adjust font size if needed */
+}
