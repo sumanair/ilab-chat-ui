@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import './App.css';
-import config from './config';
-import Header from './components/Header';
-import ChatBox from './components/ChatBox';
-import InputBox from './components/InputBox';
-import ChatHistory from './components/ChatHistory';
-import ErrorPage from './components/ErrorPage';
+import axios from 'axios';
+import config from './components/utilities/config';
+import Header from './components/common/Header';
+import ChatHistory from './components/chatHistory/ChatHistory';
+import ErrorPage from './components/common/ErrorPage';
+import ChatContainer from './components/chat/ChatContainer';
+import { fetchChatSessions, startNewSession } from './components/chat/ChatActions';
+import { checkServerHealth } from './components/utilities/HealthCheck';
 
 function App() {
   const [sessionId, setSessionId] = useState(null);
@@ -17,86 +18,35 @@ function App() {
   const [isExternalApiHealthy, setIsExternalApiHealthy] = useState(true);
   const [chatSessions, setChatSessions] = useState([]);
   const [selectedSessions, setSelectedSessions] = useState(new Set());
-
-  const fetchChatSessions = async () => {
-    try {
-      const response = await axios.get(`${config.apiBaseUrl}/api/sessions`);
-      setChatSessions(response.data);
-    } catch (error) {
-      console.error('Failed to fetch chat sessions:', error);
-    }
-  };
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    const startNewSession = async () => {
-      try {
-        const response = await axios.post(`${config.apiBaseUrl}/api/new_chat`);
-        setSessionId(response.data.session_id);
-      } catch (error) {
-        setError('Failed to start a new session. Please try again later.');
-      }
-    };
-
-    const checkServerHealth = async () => {
-      try {
-        const response = await axios.get(`${config.apiBaseUrl}/api/health`);
-        if (response.status === 200 && response.data.status === 'healthy') {
-          setIsServerHealthy(true);
-          if (response.data.external_api_status === 'healthy') {
-            setIsExternalApiHealthy(true);
-          } else {
-            setIsExternalApiHealthy(false);
-            setError('Ilab server is not responding. This could be due to resource constraints if you are running it locally. Please try again later.<br>If you are experiencing this multiple times, please check if ilab serve is running. You may also have to restart it.');
-          }
-        } else {
-          setIsServerHealthy(false);
-          setError('The application server is not responding. Please ensure the Flask server is running and try again.');
-        }
-      } catch (error) {
-        setIsServerHealthy(false);
-        setError('The application server is not responding. Please ensure the Flask server is running and try again.');
-      }
-    };
-
     const initApp = async () => {
       try {
-        await axios.get(`${config.apiBaseUrl}/api/health`);
-        await startNewSession();
-        await checkServerHealth();
-        fetchChatSessions();
+        await checkServerHealth(setIsServerHealthy, setIsExternalApiHealthy, setError);
+        await startNewSession(setSessionId, setError);
+        fetchChatSessions(setChatSessions);
       } catch (error) {
-        setError('The application server is not responding. Please ensure the Flask server is running and try again.');
+        setError('The application server is not responding. Please try again later.');
       }
     };
 
     initApp();
   }, []);
 
-  const handleSendMessage = async () => {
-    if (!message.trim() || !sessionId) return;
-
-    try {
-      const response = await axios.post(`${config.apiBaseUrl}/api/chat`, { message, session_id: sessionId });
-      const assistantResponse = response.data.response;
-      setResponses([...responses, { role: 'user', content: message }, { role: 'assistant', content: assistantResponse }]);
-      setMessage('');
-    } catch (error) {
-      setError('Failed to send message. Please try again later.');
-    }
-  };
-
   const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      handleSendMessage();
+    if (event.key === 'Enter' && !isSending) {
+      handleSendMessage(message);
     }
   };
 
   const loadChat = async (id) => {
+    if (isSending) return; // Prevent changing chat sessions while sending
     try {
       const response = await axios.get(`${config.apiBaseUrl}/api/load_chat/${id}`);
       setResponses(response.data);
       setSessionId(id);
-      await fetchChatSessions();
+      fetchChatSessions(setChatSessions);
     } catch (error) {
       console.error('Failed to load chat history:', error);
     }
@@ -105,7 +55,7 @@ function App() {
   const updateSessionName = async (sessionId, newName) => {
     try {
       await axios.post(`${config.apiBaseUrl}/api/update_session_name`, { session_id: sessionId, new_name: newName });
-      await fetchChatSessions();
+      fetchChatSessions(setChatSessions);
     } catch (error) {
       console.error('Failed to update session name:', error);
     }
@@ -161,6 +111,28 @@ function App() {
     }
   };
 
+  const handleSendMessage = async (message) => {
+    if (!message.trim() || isSending) return;
+    const newMessage = message.trim();
+    const temporaryResponse = { role: 'assistant', content: 'The assistant is at work...' };
+
+    setResponses([...responses, { role: 'user', content: newMessage }, temporaryResponse]);
+    setMessage('');
+    setIsSending(true);
+
+    try {
+      const response = await axios.post(`${config.apiBaseUrl}/api/chat`, { message: newMessage });
+      const assistantResponse = response.data.response;
+
+      setResponses(prevResponses => prevResponses.map(res => res.content === 'The assistant is at work...' ? { role: 'assistant', content: assistantResponse } : res));
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setResponses(prevResponses => prevResponses.map(res => res.content === 'The assistant is at work...' ? { role: 'assistant', content: 'Failed to get response. Please try again.' } : res));
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   if (error) {
     return <ErrorPage error={error} />;
   }
@@ -179,25 +151,17 @@ function App() {
           deleteSelectedSessions={deleteSelectedSessions}
           clearAllSessions={clearAllSessions}
           updateSessionName={updateSessionName}
+          setSelectedSessions={setSelectedSessions} // Ensure this is passed
         />
-        <div
-          className="chat-container"
-          style={{
-            backgroundImage: `url(chatbot.png)`,
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            opacity: 0.7,
-          }}
-        >
-          <ChatBox responses={responses} />
-          <InputBox
-            message={message}
-            setMessage={setMessage}
-            handleSendMessage={handleSendMessage}
-            handleKeyDown={handleKeyDown}
-          />
-        </div>
+        <ChatContainer
+          responses={responses}
+          setResponses={setResponses}
+          message={message}
+          setMessage={setMessage}
+          handleSendMessage={handleSendMessage}
+          handleKeyDown={handleKeyDown}
+          isSending={isSending}
+        />
       </div>
     </div>
   );

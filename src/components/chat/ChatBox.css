@@ -16,15 +16,13 @@
 }
 
 .message.user .message-content {
-  background-color: #d0e7ff; /* Pale blue for user questions */
   align-self: flex-start; /* Align user messages to the left */
 }
 
 .message.assistant .message-content {
-  background-color: #daf8e3; /* Pale green for assistant responses */
-  align-self: flex-end; /* Align assistant messages to the right */
-  justify-content: flex-end; /* Align the content to the right */
-  text-align: right; /* Justify the text to the right */
+  align-self: flex-end; 
+  justify-content: flex-end; 
+  text-align: right; 
 }
 
 .message-content {
