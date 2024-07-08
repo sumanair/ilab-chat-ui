@@ -6,7 +6,7 @@ import Header from './components/common/Header';
 import ChatHistory from './components/chatHistory/ChatHistory';
 import ErrorPage from './components/common/ErrorPage';
 import ChatContainer from './components/chat/ChatContainer';
-import { fetchChatSessions, startNewSession } from './components/chat/ChatActions';
+import { fetchChatSessions, fetchFolders, startNewSession } from './components/chat/ChatActions';
 import { checkServerHealth } from './components/utilities/HealthCheck';
 
 function App() {
@@ -18,6 +18,7 @@ function App() {
   const [isExternalApiHealthy, setIsExternalApiHealthy] = useState(true);
   const [chatSessions, setChatSessions] = useState([]);
   const [selectedSessions, setSelectedSessions] = useState(new Set());
+  const [folders, setFolders] = useState([]); // Add folders state
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
@@ -26,6 +27,7 @@ function App() {
         await checkServerHealth(setIsServerHealthy, setIsExternalApiHealthy, setError);
         await startNewSession(setSessionId, setError);
         fetchChatSessions(setChatSessions);
+        fetchFolders(setFolders); // Fetch folders
       } catch (error) {
         setError('The application server is not responding. Please try again later.');
       }
@@ -47,6 +49,7 @@ function App() {
       setResponses(response.data);
       setSessionId(id);
       fetchChatSessions(setChatSessions);
+      fetchFolders(setFolders); // Fetch folders
     } catch (error) {
       console.error('Failed to load chat history:', error);
     }
@@ -56,6 +59,7 @@ function App() {
     try {
       await axios.post(`${config.apiBaseUrl}/api/update_session_name`, { session_id: sessionId, new_name: newName });
       fetchChatSessions(setChatSessions);
+      fetchFolders(setFolders); // Fetch folders
     } catch (error) {
       console.error('Failed to update session name:', error);
     }
@@ -69,6 +73,7 @@ function App() {
         setResponses([]);
         setSessionId(null);
       }
+      fetchFolders(setFolders); // Fetch folders
     } catch (error) {
       console.error('Failed to delete chat session:', error);
     }
@@ -94,6 +99,7 @@ function App() {
         setResponses([]);
         setSessionId(null);
       }
+      fetchFolders(setFolders); // Fetch folders
     } catch (error) {
       console.error('Failed to delete selected chat sessions:', error);
     }
@@ -106,6 +112,8 @@ function App() {
       setSelectedSessions(new Set());
       setResponses([]);
       setSessionId(null);
+      fetchFolders(setFolders); // Fetch folders
+      fetchChatSessions(setChatSessions); // Ensure chat sessions are updated
     } catch (error) {
       setError('Failed to clear chat sessions. Please try again later.');
     }
@@ -151,7 +159,8 @@ function App() {
           deleteSelectedSessions={deleteSelectedSessions}
           clearAllSessions={clearAllSessions}
           updateSessionName={updateSessionName}
-          setSelectedSessions={setSelectedSessions} // Ensure this is passed
+          setSelectedSessions={setSelectedSessions}
+          folders={folders} // Ensure folders are passed
         />
         <ChatContainer
           responses={responses}

@@ -192,11 +192,17 @@ function ChatHistory({ selectedSessions, handleSelectSession, loadChat, deleteSe
   return (
     <div className="chat-history">
       <h2>Previous Chats</h2>
+      <hr />
       <ul>
         {chatSessions.length > 0 && (
           <li className="no-folder-container">
             {chatSessions.map(session => (
               <div key={session.id} className="session-item">
+                <input
+                  type="checkbox"
+                  checked={selectedSessions.has(session.id)}
+                  onChange={() => handleSelectSession(session.id)}
+                />
                 {editingId === session.id ? (
                   <input
                     type="text"
@@ -212,11 +218,6 @@ function ChatHistory({ selectedSessions, handleSelectSession, loadChat, deleteSe
                   </span>
                 )}
                 <div className="session-controls">
-                  <input
-                    type="checkbox"
-                    checked={selectedSessions.has(session.id)}
-                    onChange={() => handleSelectSession(session.id)}
-                  />
                   <button className="icon-button" onClick={() => setMovingSessionId(session.id)} title="Move to Folder">
                     <FontAwesomeIcon icon={faArrowRight} />
                   </button>
@@ -258,6 +259,11 @@ function ChatHistory({ selectedSessions, handleSelectSession, loadChat, deleteSe
               <ul className="folder-contents">
                 {folder.sessions && folder.sessions.map(session => (
                   <li key={session.id} className="session-item indented">
+                    <input
+                      type="checkbox"
+                      checked={selectedSessions.has(session.id)}
+                      onChange={() => handleSelectSession(session.id)}
+                    />
                     {editingId === session.id ? (
                       <input
                         type="text"
@@ -273,11 +279,6 @@ function ChatHistory({ selectedSessions, handleSelectSession, loadChat, deleteSe
                       </span>
                     )}
                     <div className="session-controls">
-                      <input
-                        type="checkbox"
-                        checked={selectedSessions.has(session.id)}
-                        onChange={() => handleSelectSession(session.id)}
-                      />
                       <button className="icon-button" onClick={() => setMovingSessionId(session.id)} title="Move Out">
                         <FontAwesomeIcon icon={faArrowRight} />
                       </button>

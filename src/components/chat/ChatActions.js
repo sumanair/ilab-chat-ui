@@ -12,6 +12,15 @@ const fetchChatSessions = async (setChatSessions) => {
   }
 };
 
+const fetchFolders = async (setFolders) => {
+  try {
+    const response = await axios.get(`${config.apiBaseUrl}/api/folders`);
+    setFolders(response.data);
+  } catch (error) {
+    console.error('Failed to fetch folders:', error);
+  }
+};
+
 const startNewSession = async (setSessionId, setError) => {
   try {
     const response = await axios.post(
@@ -52,4 +61,4 @@ const handleSendMessage = async (message, sessionId, setResponses, setMessage, r
   }
 };
 
-export { fetchChatSessions, startNewSession, handleSendMessage };
+export { fetchChatSessions, fetchFolders, startNewSession, handleSendMessage };
