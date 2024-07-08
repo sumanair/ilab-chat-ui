@@ -25,7 +25,7 @@ const startNewSession = async (setSessionId, setError) => {
   try {
     const response = await axios.post(
       `${config.apiBaseUrl}/api/new_chat`,
-      { folder_id: null }, // Adjust this as needed
+      { folder_id: null }, 
       {
         headers: {
           'Content-Type': 'application/json'
